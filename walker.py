@@ -117,10 +117,11 @@ def applyDamage(startState, playerDamage, wildDamage):
 #Set up MDP instance
 
 player_actions = ['Attack', 'Evade', 'Catch']
-wild_action_probabilites = {'Attack':0.40, 'Evade':0.35, 'Run':0.25}
 catch_probabilities = [None, 0.90, 2/3, 1/3, 0.125]
 
 states = [HealthState(*x) for x in product(range(1,5),range(1,5))] + ['Failed', 'Caught']
+
+wild_action_probabilites = {state:{'Attack':0.40, 'Evade':0.35, 'Run':0.25} for state in states}
 
 #Initialize transition_probabilities dictionary
 transition_matrix = {k:np.zeros((len(states),len(states))) for k in player_actions}
@@ -132,14 +133,14 @@ for fromState in states:
         transition_matrix['Catch'][states.index(fromState)][states.index(fromState)] = 1
     else:
         #CALCULATE WHEN PLAYER ATTACKS
-        transition_matrix['Attack'][states.index(applyDamage(fromState, 1, 1))][states.index(fromState)] += wild_action_probabilites['Attack']
-        transition_matrix['Attack'][states.index(applyDamage(fromState, 1, 0))][states.index(fromState)] += wild_action_probabilites['Evade']
-        transition_matrix['Attack'][states.index(applyDamage(fromState, 1, 2))][states.index(fromState)] += wild_action_probabilites['Run']
+        transition_matrix['Attack'][states.index(applyDamage(fromState, 1, 1))][states.index(fromState)] += wild_action_probabilites[fromState]['Attack']
+        transition_matrix['Attack'][states.index(applyDamage(fromState, 1, 0))][states.index(fromState)] += wild_action_probabilites[fromState]['Evade']
+        transition_matrix['Attack'][states.index(applyDamage(fromState, 1, 2))][states.index(fromState)] += wild_action_probabilites[fromState]['Run']
         
         #CALCULATE WHEN PLAYER EVADES
-        transition_matrix['Evade'][states.index(applyDamage(fromState, 0, 1))][states.index(fromState)] += wild_action_probabilites['Attack']
-        transition_matrix['Evade'][states.index(applyDamage(fromState, 0, 0))][states.index(fromState)] += wild_action_probabilites['Evade']
-        transition_matrix['Evade'][states.index('Failed')][states.index(fromState)] += wild_action_probabilites['Run']
+        transition_matrix['Evade'][states.index(applyDamage(fromState, 0, 1))][states.index(fromState)] += wild_action_probabilites[fromState]['Attack']
+        transition_matrix['Evade'][states.index(applyDamage(fromState, 0, 0))][states.index(fromState)] += wild_action_probabilites[fromState]['Evade']
+        transition_matrix['Evade'][states.index('Failed')][states.index(fromState)] += wild_action_probabilites[fromState]['Run']
         
         #CALCULATE WHEN PLAYER CATCH
         transition_matrix['Catch'][states.index('Caught')][states.index(fromState)] += catch_probabilities[fromState.WildHealth]
